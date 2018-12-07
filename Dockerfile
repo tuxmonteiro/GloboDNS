@@ -13,7 +13,10 @@ RUN set -x \
 
 RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -d /home/globodns globodns \
     && chown -R globodns.globodns /usr/local/rvm/gems/ruby-${RUBY_ENV} \
-    && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers
+    && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
+    && chown -R globodns.named /etc/named \
+    && mv /etc/named.conf /etc/named \
+    && ln -s /etc/named/named.conf /etc/named.conf
 
 USER globodns
 
@@ -25,7 +28,9 @@ RUN curl -Lk https://github.com/globocom/GloboDNS/archive/${GDNS_VERSION}.tar.gz
     && mv GloboDNS-${GDNS_VERSION} app \
     && cd /home/globodns/app \
     && source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global \
-    && rm -rf vendor; bundle install --deployment --without=test,development
+    && rm -rf vendor; bundle install --deployment --without=test,development \
+    && git config --global user.email "globodns@globodns.local" \
+    && git config --global user.name "GloboDNS"
 
 WORKDIR /home/globodns/app
 
