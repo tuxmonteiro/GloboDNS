@@ -7,15 +7,16 @@ ENV RUBY_ENV=${ruby_ver}
 ENV PATH "${PATH}:/usr/local/rvm/rubies/ruby-${RUBY_ENV}/bin"
 ENV GDNS_VERSION master
 ENV BIND_MASTER_IPADDR 127.0.0.1
-ENV BIND_CHROOT_DIR ""
+ENV BIND_CHROOT_DIR "/var/named/chroot"
 ENV ADDITIONAL_DNS_SERVERS ""
 ENV USER globodns
 
 RUN set -x \  
     && yum clean all \ 
-    && yum -y install bind-utils bind git
+    && yum -y install bind-utils bind-chroot git
 
 RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -d /home/globodns globodns \
+    && mkdir -p /var/named/chroot \
     && chown -R globodns.globodns /usr/local/rvm/gems/ruby-${RUBY_ENV} \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \

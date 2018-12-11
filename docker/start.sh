@@ -1,6 +1,9 @@
 #!/bin/bash
 
-service named start
+systemctl stop named || true
+systemctl disable named || true
+/usr/libexec/setup-named-chroot.sh /var/named/chroot on
+systemctl start named-chroot
 
 source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global
 
