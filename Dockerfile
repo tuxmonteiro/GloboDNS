@@ -29,7 +29,7 @@ WORKDIR /home/globodns
 
 ADD docker/start.sh /usr/bin/
 
-RUN curl -Lk https://github.com/globocom/GloboDNS/archive/${GDNS_VERSION}.tar.gz | tar xzv \
+RUN curl -Lk https://github.com/tuxmonteiro/GloboDNS/archive/${GDNS_VERSION}.tar.gz | tar xzv \
     && mv GloboDNS-${GDNS_VERSION} app \
     && cd /home/globodns/app \
     && source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global \
