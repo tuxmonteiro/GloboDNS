@@ -9,4 +9,5 @@ bundle exec rake db:setup
 bundle exec rake db:migrate
 bundle exec rake db:seed
 bundle exec rake globodns:chroot:create
+bundle exec ruby script/importer --force --master-chroot-dir="$BIND_CHROOT_DIR"
 bundle exec unicorn_rails

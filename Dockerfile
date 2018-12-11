@@ -6,6 +6,10 @@ ARG ruby_ver=2.3.6
 ENV RUBY_ENV=${ruby_ver}
 ENV PATH "${PATH}:/usr/local/rvm/rubies/ruby-${RUBY_ENV}/bin"
 ENV GDNS_VERSION 1.7.10
+ENV BIND_MASTER_IPADDR 127.0.0.1
+ENV BIND_CHROOT_DIR ""
+ENV ADDITIONAL_DNS_SERVERS ""
+ENV USER globodns
 
 RUN set -x \  
     && yum clean all \ 
@@ -16,7 +20,8 @@ RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -d /home/globodn
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \
     && mv /etc/named.conf /etc/named \
-    && ln -s /etc/named/named.conf /etc/named.conf
+    && ln -s /etc/named/named.conf /etc/named.conf \
+    && rndc-confgen -a -u globodns
 
 USER globodns
 
