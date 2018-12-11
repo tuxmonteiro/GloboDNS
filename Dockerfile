@@ -5,7 +5,7 @@ MAINTAINER Marcelo Teixeira Monteiro (tuxmonteiro)
 ARG ruby_ver=2.3.6
 ENV RUBY_ENV=${ruby_ver}
 ENV PATH "${PATH}:/usr/local/rvm/rubies/ruby-${RUBY_ENV}/bin"
-ENV GDNS_VERSION 1.7.10
+ENV GDNS_VERSION master
 ENV BIND_MASTER_IPADDR 127.0.0.1
 ENV BIND_CHROOT_DIR ""
 ENV ADDITIONAL_DNS_SERVERS ""
@@ -29,7 +29,7 @@ WORKDIR /home/globodns
 
 ADD docker/start.sh /usr/bin/
 
-RUN curl -Lk https://github.com/tuxmonteiro/GloboDNS/archive/master.tar.gz | tar xzv \
+RUN curl -Lk https://github.com/tuxmonteiro/GloboDNS/archive/${GDNS_VERSION}.tar.gz | tar xzv \
     && mv GloboDNS-${GDNS_VERSION} app \
     && cd /home/globodns/app \
     && source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global \
