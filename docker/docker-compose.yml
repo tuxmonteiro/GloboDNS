@@ -16,7 +16,7 @@ services:
       test: "(echo >/dev/tcp/localhost/3306) &>/dev/null"
 
   globodns:
-    image: tuxmonteiro/globodns
+    image: tuxmonteiro/globodns:20190201
     container_name: globodns
     depends_on:
       globodns_db:
