@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3'
 
 services:
 
@@ -16,11 +16,10 @@ services:
       test: "(echo >/dev/tcp/localhost/3306) &>/dev/null"
 
   globodns:
-    image: tuxmonteiro/globodns:20190201
+    image: tuxmonteiro/globodns:20190205
     container_name: globodns
     depends_on:
-      globodns_db:
-        condition: service_healthy
+      - globodns_db
     networks:
       - mynetwork
     ports:
