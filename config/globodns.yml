@@ -58,18 +58,19 @@ development: &devconf
     slaves_file:            'slaves.conf'
     forwards_dir:           'forwards'
     forwards_file:          'forwards.conf'
+    views_dir:              'views'
     views_file:             'views.conf'
-    subdir_depth:           3
+    subdir_depth:           <%= ENV.fetch('SUBDIR_DEPTH', 3) %>
 
-    domains_ownership:       true
-    enable_view:             false
-    increase_ttl:            false
+    domains_ownership:       <%= ENV.fetch('DOMAINS_OWNERSHIP', true) %>
+    enable_view:             <%= ENV.fetch('ENABLE_VIEW', false) %>
+    increase_ttl:            <%= ENV.fetch('INSCREASE_TTL', false) %>
 
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
-    git_author:             'Globo DNS API <dnsapi@yourdomain.com>'
-    export_delay:           300  # in seconds
-    mail_recipients:        [ 'Root <root@hostname.com>' ]
-    dns_group: 'Internal'
+    git_author:             <%= ENV.fetch('GIT_AUTHOR', 'Globo DNS API <dnsapi@yourdomain.com>') %>
+    export_delay:           <%= ENV.fetch('EXPORT_DELAY', 300) %>  # in seconds
+    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>') %>.split(',')
+    dns_group:              <%= ENV.fetch('DNS_GROUP', 'Internal') %>
 
     export:
         zones_diff_limit: 50
@@ -104,7 +105,7 @@ test:
     bind_slave_ipaddr:           <%= ENV.fetch('BIND_SLAVE_IPADDR', '127.0.0.1') %>
     bind_slave_port:             <%= ENV.fetch('BIND_SLAVE_PORT', 5354) %>
     bind_slave_rndc_port:        <%= ENV.fetch('BIND_SLAVE_RNDC_PORT', 5954) %>
-    bind_slave_chroot_dir:      <%= Rails.root.join('test', 'mock', 'chroot_slave') %>
+    bind_slave_chroot_dir:       <%= Rails.root.join('test', 'mock', 'chroot_slave') %>
     bind_slave_zones_dir:        '/etc/named'
     bind_slave_named_conf_file:  '/etc/named.conf'
 
@@ -124,14 +125,15 @@ test:
     reverse_file:           'reverse.conf'
     slaves_dir:             'slaves'
     slaves_file:            'slaves.conf'
+    views_dir:              'views'
     views_file:             'views.conf'
-    subdir_depth:           3
+    subdir_depth:           <%= ENV.fetch('SUBDIR_DEPTH', 3) %>
 
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
-    git_author:             'Globo DNS API <dnsapi@yourdomain.com>'
-    export_delay:           300  # in seconds
-    mail_recipients:        [ 'Root <root@hostname.com>' ]
-    dns_group:              'Internal'
+    git_author:             <%= ENV.fetch('GIT_AUTHOR', 'Globo DNS API <dnsapi@yourdomain.com>') %>
+    export_delay:           <%= ENV.fetch('EXPORT_DELAY', 300) %>  # in seconds
+    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>') %>.split(',')
+    dns_group:              <%= ENV.fetch('DNS_GROUP', 'Internal') %>
 
     export:
         zones_diff_limit: 50
