@@ -8,6 +8,12 @@ systemctl start named-chroot
 source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global
 
 sed -i -e 's/host:.*/host: globodnsdb.local/g' -e 's/password:.*/password: password/' config/database.yml
+
+while ! echo >/dev/tcp/globodnsdb.local/3306; do
+sleep 1
+echo "wait globodnsdb.local:3306"
+done
+
 bundle exec rake db:setup
 bundle exec rake db:migrate
 bundle exec rake db:seed
