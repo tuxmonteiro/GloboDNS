@@ -10,12 +10,15 @@ ENV BIND_MASTER_IPADDR 127.0.0.1
 ENV BIND_CHROOT_DIR "/var/named/chroot"
 ENV ADDITIONAL_DNS_SERVERS ""
 ENV USER globodns
+ENV SUBDIR_DEPTH 2
+ENV ENABLE_VIEW true
+ENV EXPORT_DELAY 10
 
 RUN set -x \  
     && yum clean all \ 
     && yum -y install bind-utils bind-chroot git
 
-RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -d /home/globodns globodns \
+RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d /home/globodns globodns \
     && mkdir -p /var/named/chroot \
     && chown -R globodns.globodns /usr/local/rvm/gems/ruby-${RUBY_ENV} \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
@@ -37,6 +40,8 @@ RUN curl -Lk https://github.com/globocom/GloboDNS/archive/${GDNS_VERSION}.tar.gz
     && rm -rf vendor; bundle lock; bundle install --deployment --without=test,development \
     && git config --global user.email "globodns@globodns.local" \
     && git config --global user.name "GloboDNS"
+
+ADD config/globodns.yml /home/globodns/app/config/globodns.yml
 
 WORKDIR /home/globodns/app
 
