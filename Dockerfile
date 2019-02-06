@@ -13,36 +13,43 @@ ENV USER globodns
 ENV SUBDIR_DEPTH 2
 ENV ENABLE_VIEW true
 ENV EXPORT_DELAY 10
+ENV GIT_AUTHOR "GloboDNS <globodns@globodns.local>"
+ENV GIT_USERNAME "GloboDNS"
+ENV GDNS_HOME /home/globodns
 
 RUN set -x \  
     && yum clean all \ 
-    && yum -y install bind-utils bind-chroot git
-
-RUN groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d /home/globodns globodns \
-    && mkdir -p /var/named/chroot \
+    && yum -y install bind-utils bind-chroot git iproute \
+    && groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d ${GDNS_HOME} globodns \
+    && mkdir -p "${BIND_CHROOT_DIR}" "${GDNS_HOME}/app" \
     && chown -R globodns.globodns /usr/local/rvm/gems/ruby-${RUBY_ENV} \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \
     && mv /etc/named.conf /etc/named \
     && ln -s /etc/named/named.conf /etc/named.conf \
-    && rndc-confgen -a -u globodns
+    && rndc-confgen -a -u globodns \
+    && grep '^Host' /etc/ssh/ssh_config >/dev/null 2>&1 && echo -e '\tUserKnownHostsFile /dev/null\n\tStrictHostKeyChecking no' >> /etc/ssh/ssh_config
+
+ADD docker/start.sh /usr/bin/
+ADD . ${GDNS_HOME}/app/
+
+RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh 
+
+ADD docker/id_rsa ${GDNS_HOME}/.ssh/
+ADD docker/id_rsa.pub ${GDNS_HOME}/.ssh/
+
+RUN chown -R globodns.globodns "${GDNS_HOME}/app" "${GDNS_HOME}/.ssh" \
+    && chmod 600 ${GDNS_HOME}/.ssh/id_rsa \
+    && chmod 644 ${GDNS_HOME}/.ssh/id_rsa.pub
 
 USER globodns
 
-WORKDIR /home/globodns
+WORKDIR ${GDNS_HOME}/app
 
-ADD docker/start.sh /usr/bin/
-
-RUN curl -Lk https://github.com/globocom/GloboDNS/archive/${GDNS_VERSION}.tar.gz | tar xzv \
-    && mv GloboDNS-${GDNS_VERSION} app \
-    && cd /home/globodns/app \
+RUN set -x \
     && source /usr/local/rvm/environments/ruby-${RUBY_ENV}@global \
     && rm -rf vendor; bundle lock; bundle install --deployment --without=test,development \
-    && git config --global user.email "globodns@globodns.local" \
-    && git config --global user.name "GloboDNS"
-
-ADD config/globodns.yml /home/globodns/app/config/globodns.yml
-
-WORKDIR /home/globodns/app
+    && git config --global user.email "${GIT_AUTHOR}" \
+    && git config --global user.name "${GIT_USERNAME}"
 
 CMD ["/usr/bin/start.sh"]
