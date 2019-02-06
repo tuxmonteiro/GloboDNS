@@ -41,7 +41,7 @@ development: &devconf
 
     bind_user:                   'named'
     bind_group:                  'named'
-    additional_dns_servers:  <%= ENV.fetch('ADDITIONAL_DNS_SERVERS', '8.8.8.8,8.8.4.4') %>.split(',') # additional dns servers ips to check if record is responding correctly
+    additional_dns_servers:  <%= ENV.fetch('ADDITIONAL_DNS_SERVERS', '8.8.8.8,8.8.4.4').split(',').freeze %> # additional dns servers ips to check if record is responding correctly
 
 
     bind_error_log:         <%= "#{ENV.fetch('BIND_CHROOT_DIR', '/var/named/chroot')}/var/log/globodns.error.log" %>
@@ -69,7 +69,7 @@ development: &devconf
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
     git_author:             <%= ENV.fetch('GIT_AUTHOR', 'Globo DNS API <dnsapi@yourdomain.com>') %>
     export_delay:           <%= ENV.fetch('EXPORT_DELAY', 300) %>  # in seconds
-    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>') %>.split(',')
+    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>').split(',').freeze %>
     dns_group:              <%= ENV.fetch('DNS_GROUP', 'Internal') %>
 
     export:
@@ -132,7 +132,7 @@ test:
     record_order:           [ SOA, NS, MX, A, AAAA, CNAME, LOC, SPF, SRV, PTR, TXT ]
     git_author:             <%= ENV.fetch('GIT_AUTHOR', 'Globo DNS API <dnsapi@yourdomain.com>') %>
     export_delay:           <%= ENV.fetch('EXPORT_DELAY', 300) %>  # in seconds
-    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>') %>.split(',')
+    mail_recipients:        <%= ENV.fetch('MAIL_RECIPIENTS', 'Root <root@hostname.com>').split(',').freeze %>
     dns_group:              <%= ENV.fetch('DNS_GROUP', 'Internal') %>
 
     export:
