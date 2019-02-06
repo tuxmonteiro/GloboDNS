@@ -15,16 +15,27 @@ services:
     healthcheck:
       test: "(echo >/dev/tcp/localhost/3306) &>/dev/null"
 
+  globodns_master:
+    image: tuxmonteiro/globodns.master:20190206
+    container_name: globodns.master
+    networks:
+      - mynetwork
+    ports:
+      - 53:53/udp
+
   globodns:
-    image: tuxmonteiro/globodns:20190205
-    container_name: globodns
+    image: tuxmonteiro/globodns:20190206
+    container_name: globodns.local
+    environment:
+      BIND_MASTER_HOST: globodns.master
+      BIND_MASTER_IPADDR: globodns.master
     depends_on:
       - globodns_db
+      - globodns_master
     networks:
       - mynetwork
     ports:
       - 8080:8080
-      - 53:53/udp
 
 networks:
   mynetwork:
