@@ -1,4 +1,4 @@
-FROM centos:centos6
+FROM centos:centos7
 
 MAINTAINER Marcelo Teixeira Monteiro (tuxmonteiro)
 
@@ -11,8 +11,8 @@ ENV GIT_AUTHOR "GloboDNS <globodns@globodns.local>"
 ENV GIT_USERNAME "GloboDNS"
 ENV GDNS_HOME /home/globodns
 
-RUN set -x \  
-    && yum clean all \ 
+RUN set -x \
+    && yum clean all \
     && yum -y install bind-utils bind-chroot git iproute openssh-server \
     && ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -q -N '' -C '' \
     && ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -q -N '' -C '' \
@@ -29,9 +29,10 @@ RUN set -x \
     && chown -R globodns.named /etc/named \
     && chown -R globodns.named "${BIND_CHROOT_DIR}" \
     && mv /etc/named.conf /etc/named \
-    && ln -s /etc/named/named.conf /etc/named.conf
+    && ln -s /etc/named/named.conf /etc/named.conf \
+    && sed -i -e '/.*named.rfc1912.zones.*/d' -e '/zone "." IN {/{:1;/}/!{N;b1};/.*type hint;/d}' /etc/named/named.conf
 
-RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh 
+RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh
 
 ADD docker/id_rsa.pub ${GDNS_HOME}/.ssh/authorized_keys
 ADD docker/start-master.sh /usr/bin/
@@ -43,7 +44,7 @@ USER globodns
 
 RUN git config --global user.email "${GIT_AUTHOR}" \
     && git config --global user.name "${GIT_USERNAME}"
-    
+
 USER root
 
 EXPOSE 22 53

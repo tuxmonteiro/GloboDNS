@@ -4,39 +4,38 @@ services:
 
   globodns_db:
     image: mysql:5.6
-    container_name: globodnsdb.local 
+    container_name: globodnsdb.local
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: globodns
-    networks:
-      - mynetwork
+    network_mode: "host"
     ports:
       - 3306:3306
     healthcheck:
       test: "(echo >/dev/tcp/localhost/3306) &>/dev/null"
 
   globodns_master:
-    image: tuxmonteiro/globodns.master:20190206
+    image: tuxmonteiro/globodns.master:20190207
     container_name: globodns.master
-    networks:
-      - mynetwork
+    network_mode: "host"
+    privileged: true
     ports:
+      - 22:22
       - 53:53/udp
 
   globodns:
-    image: tuxmonteiro/globodns:20190206
+    image: tuxmonteiro/globodns:20190207
     container_name: globodns.local
     environment:
-      BIND_MASTER_HOST: globodns.master
-      BIND_MASTER_IPADDR: globodns.master
+      BIND_MASTER_HOST: localhost
+      BIND_MASTER_IPADDR: 127.0.0.1
+      DB_HOST: 127.0.0.1
+      DB_PASSWORD: password
+    privileged: true
     depends_on:
       - globodns_db
       - globodns_master
-    networks:
-      - mynetwork
+    network_mode: "host"
     ports:
       - 8080:8080
-
-networks:
-  mynetwork:
 

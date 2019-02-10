@@ -17,13 +17,14 @@ ENV GIT_AUTHOR "GloboDNS <globodns@globodns.local>"
 ENV GIT_USERNAME "GloboDNS"
 ENV GDNS_HOME /home/globodns
 
-RUN set -x \  
-    && yum clean all \ 
-    && yum -y install bind-utils bind-chroot git iproute \
+RUN set -x \
+    && yum clean all \
+    && yum -y install bind-utils bind-chroot git iproute nmap-ncat \
     && groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d ${GDNS_HOME} globodns \
     && mkdir -p "${BIND_CHROOT_DIR}" "${GDNS_HOME}/app" \
     && chown -R globodns.globodns /usr/local/rvm/gems/ruby-${RUBY_ENV} \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
+    && echo 'globodns ALL=(ALL) NOPASSWD: /usr/libexec/setup-named-chroot.sh' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \
     && mv /etc/named.conf /etc/named \
     && ln -s /etc/named/named.conf /etc/named.conf \
@@ -33,7 +34,7 @@ RUN set -x \
 ADD docker/start.sh /usr/bin/
 ADD . ${GDNS_HOME}/app/
 
-RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh 
+RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh
 
 ADD docker/id_rsa ${GDNS_HOME}/.ssh/
 ADD docker/id_rsa.pub ${GDNS_HOME}/.ssh/
