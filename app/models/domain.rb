@@ -382,10 +382,27 @@ class Domain < ActiveRecord::Base
   # Accepts, as options, output_soa: boolean
   def output_records output, records, options={output_soa: true, update_serial: true}
     format = records_format records
-    records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map{|x| "'#{x}'"}.join(', ')}), name ASC").each do |record|
+    max_serials = Hash.new(0)
+    records_ordered = records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map {|x| "'#{x}'"}.join(', ')}), name ASC")
+    records_ordered.each do |record|
+      if options[:output_soa]
+        max_serials[record.name] = records.serial if record.is_a?(SOA) && max_serials[record.name] < records.serial
+      end
+    end
+    max_serials.each do |zone_name, max_serial|
+      new_serial = max_serial
+      current_date = Time.now.strftime('%Y%m%d')
+      if new_serial/100 >= current_date.to_i
+        new_serial += 1
+      else
+        new_serial = (current_date + '00').to_i
+      end
+      max_serials[zone_name] = new_serial
+    end
+    records_ordered.each do |record|
       record.domain = self
       unless record.is_a?(SOA) && !options[:output_soa]
-        record.update_serial(true) if (record.is_a?(SOA) and options[:update_serial])
+        record.update_serial(max_serials[record.name], true) if (record.is_a?(SOA) and options[:update_serial])
         record.to_zonefile(output, format)
       end
     end
