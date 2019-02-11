@@ -76,22 +76,40 @@ class SOA < Record
   # updates the serial number to the next logical one. Format of the generated
   # serial is YYYYMMDDNN, where NN is the number of the change for the day
   def update_serial(save = false)
-    if (defined? GloboDns::Config::ENABLE_VIEW and GloboDns::Config::ENABLE_VIEW)
-      domains = Domain.where(name: self.domain.name)
+    domains = nil
+    view_default = self.domain.view == Domain::DEFAULT_VIEW
+    enabled_view = (defined? GloboDns::Config::ENABLE_VIEW) && GloboDns::Config::ENABLE_VIEW
+
+    original_serial = self.serial
+    if enabled_view
+      domains = Domain.where("name = :name and view_id != :view_id",  { name: self.domain.name, view_id: self.domain.view_id })
       domains.each do |d|
-        serial = d.records.where(type: "SOA").first.serial
-        if self.serial < serial
-          self.serial = serial
+        soa = d.records.where(type: "SOA").first
+        serial = soa.serial
+        self.serial = serial if serial > self.serial && (view_default || soa.domain.view == Domain::DEFAULT_VIEW)
+      end
+    end
+
+    if original_serial == self.serial
+      current_date = Time.now.strftime('%Y%m%d')
+      if self.serial/100 >= current_date.to_i
+        self.serial += 1
+      else
+        self.serial = (current_date + '00').to_i
+      end
+    end
+
+    if enabled_view && domains != nil && save
+      domains.each do |d|
+        soa = d.records.where(type: "SOA").first
+        soa.serial = self.serial
+        soa.set_content
+        self.transaction do
+          soa.update_column(:content, soa.content)
         end
       end
     end
 
-    current_date = Time.now.strftime('%Y%m%d')
-    if self.serial/100 >= current_date.to_i
-      self.serial += 1
-    else
-      self.serial = (current_date + '00').to_i
-    end
     if save
       set_content
       self.transaction do
