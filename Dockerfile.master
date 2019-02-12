@@ -17,13 +17,15 @@ RUN set -x \
     && ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -q -N '' -C '' \
     && ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -q -N '' -C '' \
     && ssh-keygen -t rsa1 -f /etc/ssh/ssh_host_key -q -N '' -C '' \
+    && ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N '' -C '' \
+    && ssh-keygen -t ecdsa -b 521 -f /etc/ssh/ssh_host_ecdsa_key -q -N '' -C '' \
     && chmod 600 /etc/ssh/ssh_host_rsa_key \
     && chmod 600 /etc/ssh/ssh_host_dsa_key \
     && chmod 600 /etc/ssh/ssh_host_key \
     && chmod 644 /etc/ssh/ssh_host_rsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_dsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_key.pub \
-    && groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d ${GDNS_HOME} globodns \
+    && groupadd -g 12386 globodns; useradd -m -u 12386 -g 12386 -G named -d ${GDNS_HOME} globodns \
     && mkdir -p "${BIND_CHROOT_DIR}" \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \

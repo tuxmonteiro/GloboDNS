@@ -65,6 +65,9 @@ class Record < ActiveRecord::Base
   # before_save     :update_change_date
   # after_save      :update_soa_serial
   after_destroy :update_domain_timestamp
+  after_save    :update_domain_timestamp
+  after_create  :update_domain_timestamp
+
   before_save   :reset_prio
   before_save   :ipv6_remove_leading_zeros, :if => :is_ipv6?
 
@@ -589,7 +592,9 @@ class Record < ActiveRecord::Base
   private
 
   def update_domain_timestamp
-    self.domain.touch
+    Domain.where(name: self.domain.name).each do |domain|
+      domain.touch
+    end
   end
 
   def reset_prio

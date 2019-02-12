@@ -310,7 +310,7 @@ class Domain < ActiveRecord::Base
     str
   end
 
-  def to_zonefile(output, update_serial=true)
+  def to_zonefile(output, serial, update_serial=true)
     logger.warn "[WARN] called 'to_zonefile' on slave/forward domain (#{self.id})" and return if slave? || forward?
 
     output = File.open(output, 'w') if output.is_a?(String) || output.is_a?(Pathname)
@@ -319,11 +319,11 @@ class Domain < ActiveRecord::Base
     output.puts "$TTL    #{self.ttl}"
     output.puts
 
-    output_records(output, self.sibling.records, output_soa: true, update_serial: update_serial) if sibling
-    output_records(output, self.records, output_soa: !sibling, update_serial: update_serial) # only show this soa if the soa for the sibling hasn't been shown yet.
+    output_records(output, self.sibling.records, serial, output_soa: true, update_serial: update_serial) if sibling
+    output_records(output, self.records, serial, output_soa: !sibling, update_serial: update_serial) # only show this soa if the soa for the sibling hasn't been shown yet.
     if self.has_in_default_view? and self.view != DEFAULT_VIEW
       # if the zone is common to a view and the default view, the zone conf will be written only once and merge the records from the default view zone
-      output_records(output, self.records_zone_default, output_soa: !sibling, update_serial: update_serial)
+      output_records(output, self.records_zone_default, serial, output_soa: !sibling, update_serial: update_serial)
     end
   ensure
     output.close if output.is_a?(File)
@@ -380,37 +380,13 @@ class Domain < ActiveRecord::Base
   # Output to the given output stream
   # the records from the given colection.
   # Accepts, as options, output_soa: boolean
-  def output_records output, records, options={output_soa: true, update_serial: true}
+  def output_records output, records, serial = 0, options={output_soa: true, update_serial: true}
     format = records_format records
-    max_serials = Hash.new(0)
     records_ordered = records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map {|x| "'#{x}'"}.join(', ')}), name ASC")
-    records_ordered.each do |record|
-      if options[:output_soa]
-        max_serials[record.name] = record.serial if record.is_a?(SOA) && max_serials[record.name] < record.serial
-      end
-    end
-    # max_serials.transform_values! do |v|
-    #   current_date = Time.now.strftime('%Y%m%d')
-    #   if max_serial/100 >= current_date.to_i
-    #     new_serial = max_serial + 1
-    #   else
-    #     new_serial = (current_date + '00').to_i
-    #   end
-    # end
-    new_serials = Hash.new
-    max_serials.each do |zone_name, max_serial|
-      current_date = Time.now.strftime('%Y%m%d')
-      if max_serial/100 >= current_date.to_i
-        new_serial = max_serial + 1
-      else
-        new_serial = (current_date + '00').to_i
-      end
-      new_serials[zone_name] = new_serial
-    end
     records_ordered.each do |record|
       record.domain = self
       unless record.is_a?(SOA) && !options[:output_soa]
-        record.update_serial(new_serials[record.name], true) if (record.is_a?(SOA) and options[:update_serial])
+        record.update_serial(serial, true) if (record.is_a?(SOA) and options[:update_serial])
         record.to_zonefile(output, format)
       end
     end

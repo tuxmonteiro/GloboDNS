@@ -293,6 +293,7 @@ module GloboDns
       File.exist?(abs_views_dir) or FileUtils.mkdir(abs_views_dir)
 
       File.open(abs_views_file, 'w') do |file|
+
         View.all.each do |view|
           file.puts view.to_bind9_conf(zones_root_dir, '', @slave) unless view.default?
           if @slave == true
@@ -406,7 +407,39 @@ module GloboDns
       # write <view>_<type>.conf (the zones that exist in this view)
       File.open(abs_file_name, 'w') do |file|
         # dump zonefile of updated domains
-        updated_domains = export_all_domains ? domains : domains.updated_since(@last_commit_date)
+        updated_domains = export_all_domains ? domains :
+                              domains.select { |domain|
+                                domains.updated_since(@last_commit_date).map(&:name).include? domain.name
+                              }
+
+        logger.warn updated_domains.inspect
+
+        serials = {}
+        serials.default = 0
+        updated_domains.each do |domain|
+          domain_name = domain.name.freeze
+          logger.warn domain_name
+          domain.records.each do |record|
+            if record.is_a?(SOA)
+              serial = record.serial
+              logger.warn "SERIAL FROM RECORD: #{record.serial}"
+              serials[domain_name] = serial if serials[domain_name] <= serial
+              logger.warn serials.inspect
+            end
+          end
+        end
+
+        logger.warn serials.inspect
+        serials.each do |domain_name, serial|
+          current_date = Time.now.strftime('%Y%m%d')
+          if serial/100 >= current_date.to_i
+            serial =+  1
+          else
+            serial = (current_date + '00').to_i
+          end
+          serials[domain_name] = serial
+        end
+
         updated_domains.each do |domain|
           n_zones << domain unless export_all_domains && @slave
           unless @slave || domain.forward? # Slaves and forwards don't replicate the zone-files.
@@ -416,7 +449,8 @@ module GloboDns
             File.exist?(abs_zonefile_dir) or FileUtils.mkdir_p(abs_zonefile_dir)
             # Create/Update the zonefile itself
             abs_zonefile_path = File.join(abs_zones_root_dir, domain.zonefile_path)
-            domain.to_zonefile(abs_zonefile_path) unless domain.slave?
+            logger.warn "#{domain.name.freeze} >>> #{serials[domain.name.freeze]}"
+            domain.to_zonefile(abs_zonefile_path, serials[domain.name.freeze]) unless domain.slave?
             #File.utime(@touch_timestamp, @touch_timestamp, File.join(abs_zonefile_path)) unless domain.slave? || domain.forward?
           end
         end
