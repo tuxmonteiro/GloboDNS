@@ -386,23 +386,23 @@ class Domain < ActiveRecord::Base
     records_ordered = records.order("FIELD(type, #{GloboDns::Config::RECORD_ORDER.map {|x| "'#{x}'"}.join(', ')}), name ASC")
     records_ordered.each do |record|
       if options[:output_soa]
-        max_serials[record.name] = records.serial if record.is_a?(SOA) && max_serials[record.name] < records.serial
+        max_serials[record.name] = record.serial if record.is_a?(SOA) && max_serials[record.name] < record.serial
       end
     end
+    new_serials = Hash.new
     max_serials.each do |zone_name, max_serial|
-      new_serial = max_serial
       current_date = Time.now.strftime('%Y%m%d')
-      if new_serial/100 >= current_date.to_i
-        new_serial += 1
+      if max_serial/100 >= current_date.to_i
+        new_serial = max_serial + 1
       else
         new_serial = (current_date + '00').to_i
       end
-      max_serials[zone_name] = new_serial
+      new_serials[zone_name] = new_serial
     end
     records_ordered.each do |record|
       record.domain = self
       unless record.is_a?(SOA) && !options[:output_soa]
-        record.update_serial(max_serials[record.name], true) if (record.is_a?(SOA) and options[:update_serial])
+        record.update_serial(new_serials[record.name], true) if (record.is_a?(SOA) and options[:update_serial])
         record.to_zonefile(output, format)
       end
     end

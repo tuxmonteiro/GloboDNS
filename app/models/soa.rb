@@ -76,7 +76,13 @@ class SOA < Record
   # updates the serial number to the next logical one. Format of the generated
   # serial is YYYYMMDDNN, where NN is the number of the change for the day
   def update_serial(serial, save = false)
-    self.serial = serial
+    if serial.nil? || serial == 0
+      current_date = Time.now.strftime('%Y%m%d')
+      self.serial = (current_date + '00').to_i
+    else
+      self.serial = serial
+    end
+
     if save
       set_content
       self.transaction do
