@@ -389,6 +389,14 @@ class Domain < ActiveRecord::Base
         max_serials[record.name] = record.serial if record.is_a?(SOA) && max_serials[record.name] < record.serial
       end
     end
+    # max_serials.transform_values! do |v|
+    #   current_date = Time.now.strftime('%Y%m%d')
+    #   if max_serial/100 >= current_date.to_i
+    #     new_serial = max_serial + 1
+    #   else
+    #     new_serial = (current_date + '00').to_i
+    #   end
+    # end
     new_serials = Hash.new
     max_serials.each do |zone_name, max_serial|
       current_date = Time.now.strftime('%Y%m%d')
