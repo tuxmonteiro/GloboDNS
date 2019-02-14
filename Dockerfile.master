@@ -17,9 +17,13 @@ RUN set -x \
     && ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -q -N '' -C '' \
     && ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -q -N '' -C '' \
     && ssh-keygen -t rsa1 -f /etc/ssh/ssh_host_key -q -N '' -C '' \
+    && ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N '' -C '' \
+    && ssh-keygen -t ecdsa -b 521 -f /etc/ssh/ssh_host_ecdsa_key -q -N '' -C '' \
     && chmod 600 /etc/ssh/ssh_host_rsa_key \
     && chmod 600 /etc/ssh/ssh_host_dsa_key \
     && chmod 600 /etc/ssh/ssh_host_key \
+    && chmod 600 /etc/ssh/ssh_host_ed25519_key \
+    && chmod 600 /etc/ssh/ssh_host_ecdsa_key \
     && chmod 644 /etc/ssh/ssh_host_rsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_dsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_key.pub \
