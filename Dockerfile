@@ -29,7 +29,10 @@ RUN set -x \
     && mv /etc/named.conf /etc/named \
     && ln -s /etc/named/named.conf /etc/named.conf \
     && rndc-confgen -a -u globodns \
-    && grep '^Host' /etc/ssh/ssh_config >/dev/null 2>&1 && echo -e '\tUserKnownHostsFile /dev/null\n\tStrictHostKeyChecking no' >> /etc/ssh/ssh_config
+    && grep '^Host' /etc/ssh/ssh_config >/dev/null 2>&1 \
+    && echo -e '\tUserKnownHostsFile /dev/null' >> /etc/ssh/ssh_config \
+    && echo -e '\tStrictHostKeyChecking no' >> /etc/ssh/ssh_config \
+    && echo -e '\tPort 2002' >> /etc/ssh/ssh_config
 
 ADD docker/start.sh /usr/bin/
 ADD . ${GDNS_HOME}/app/

@@ -23,7 +23,11 @@ RUN set -x \
     && chmod 644 /etc/ssh/ssh_host_rsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_dsa_key.pub \
     && chmod 644 /etc/ssh/ssh_host_key.pub \
-    && groupadd -g 12386 globodns; useradd -m -u 12386 -g globodns -G named -d ${GDNS_HOME} globodns \
+    && chmod 644 /etc/ssh/ssh_host_ed25519_key.pub \
+    && chmod 644 /etc/ssh/ssh_host_ecdsa_key.pub \
+    && sed -i -e '/Port 22/d' /etc/ssh/sshd_config \
+    && echo 'Port 2002' >> /etc/ssh/sshd_config \
+    && groupadd -g 12386 globodns; useradd -m -u 12386 -g 12386 -G named -d ${GDNS_HOME} globodns \
     && mkdir -p "${BIND_CHROOT_DIR}" \
     && echo 'globodns ALL=(ALL) NOPASSWD: /usr/sbin/named-checkconf' >> /etc/sudoers \
     && chown -R globodns.named /etc/named \
