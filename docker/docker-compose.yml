@@ -15,7 +15,6 @@ services:
       test: "(echo >/dev/tcp/localhost/3306) &>/dev/null"
 
   globodns_master:
-<<<<<<< HEAD
     image: tuxmonteiro/globodns.master:20190214
     container_name: globodns.master
     network_mode: "host"
