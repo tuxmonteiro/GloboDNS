@@ -42,8 +42,8 @@ RUN set -x \
 
 RUN mkdir ${GDNS_HOME}/.ssh && chmod 700 ${GDNS_HOME}/.ssh
 
-ADD docker/id_rsa.pub ${GDNS_HOME}/.ssh/authorized_keys
-ADD docker/start-master.sh /usr/bin/
+ADD id_rsa.pub ${GDNS_HOME}/.ssh/authorized_keys
+ADD start-master.sh /usr/bin/
 
 RUN chown -R globodns.globodns "${GDNS_HOME}/.ssh" \
     && chmod 644 ${GDNS_HOME}/.ssh/authorized_keys
